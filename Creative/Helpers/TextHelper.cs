@@ -25,4 +25,15 @@ public static class TextHelper
 
         return char.ToUpper(text[0]) + text[1..].ToLower();
     }
+
+    public static string Slugify(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        return text.Trim()
+                   .ToLower()
+                   .Replace(' ', '-')
+                   .Replace("--", "-");
+    }
 }

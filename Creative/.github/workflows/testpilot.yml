@@ -1,0 +1,46 @@
+name: TestPilot — Generate Missing Tests
+
+on:
+  push:
+    # Run on every feature branch push; skip main/master.
+    branches-ignore:
+      - main
+      - master
+
+jobs:
+  generate-tests:
+    name: Generate Missing Tests
+    runs-on: ubuntu-latest
+
+    # Skip commits that TestPilot itself created to avoid infinite loops.
+    if: "!contains(github.event.head_commit.message, '[testpilot skip]')"
+
+    permissions:
+      contents: write   # needed to push the generated test files back
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth 2 lets testpilot diff HEAD~1 on normal pushes.
+          # TESTPILOT_BASE_SHA (set below) is used instead when available.
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Generate missing tests
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Tells testpilot exactly which commit to diff against.
+          # github.event.before is the SHA before this push.
+          TESTPILOT_BASE_SHA: ${{ github.event.before }}
+        run: npx --yes testpilot-dotnet@latest ci-run --commit

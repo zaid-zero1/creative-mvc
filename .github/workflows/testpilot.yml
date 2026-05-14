@@ -1,30 +1,39 @@
 name: TestPilot — Generate Missing Tests
 
 on:
-  push:
-    # Run on every feature branch push; skip main/master.
-    branches-ignore:
+  pull_request:
+    # Run when a PR targeting main/master is opened, updated, or marked ready.
+    types: [opened, synchronize, ready_for_review]
+    branches:
       - main
       - master
+    # Only run when non-test C# source files actually changed.
+    paths:
+      - '**/*.cs'
+      - '!**/*Tests.cs'
+      - '!**/*Test.cs'
 
 jobs:
   generate-tests:
     name: Generate Missing Tests
     runs-on: ubuntu-latest
 
-    # Skip commits that TestPilot itself created to avoid infinite loops.
-    if: "!contains(github.event.head_commit.message, '[testpilot skip]')"
+    # Skip draft PRs and commits pushed back by TestPilot itself (via GITHUB_TOKEN,
+    # which sets github.actor to 'github-actions[bot]').
+    if: "!github.event.pull_request.draft && github.actor != 'github-actions[bot]'"
 
     permissions:
-      contents: write   # needed to push the generated test files back
+      contents: write        # needed to push the generated test files back
+      pull-requests: write   # needed to post the test summary PR comment
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # fetch-depth 2 lets testpilot diff HEAD~1 on normal pushes.
-          # TESTPILOT_BASE_SHA (set below) is used instead when available.
-          fetch-depth: 2
+          # Check out the actual feature branch (not the detached PR merge commit)
+          # so TestPilot can commit generated tests back to the branch.
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
@@ -37,10 +46,17 @@ jobs:
         with:
           dotnet-version: '8.x'
 
+      - name: Configure git identity for TestPilot commits
+        run: |
+          git config user.name "TestPilot Bot"
+          git config user.email "testpilot-bot@users.noreply.github.com"
+
       - name: Generate missing tests
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Tells testpilot exactly which commit to diff against.
-          # github.event.before is the SHA before this push.
-          TESTPILOT_BASE_SHA: ${{ github.event.before }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Diff against the PR base commit so only files changed in this PR are scanned.
+          TESTPILOT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # Pass the PR number directly so the comment step doesn't need a branch lookup.
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: npx --yes testpilot-dotnet@latest ci-run --commit

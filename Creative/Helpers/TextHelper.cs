@@ -45,4 +45,38 @@ public static class TextHelper
         var cleaned = text.ToLower().Where(char.IsLetterOrDigit).ToArray();
         return cleaned.SequenceEqual(cleaned.Reverse());
     }
+
+    public static string WrapText(string text, int lineWidth)
+    {
+        if (string.IsNullOrWhiteSpace(text) || lineWidth <= 0)
+            return text ?? string.Empty;
+
+        var words = text.Split(' ');
+        var lines = new List<string>();
+        var current = new System.Text.StringBuilder();
+
+        foreach (var word in words)
+        {
+            int spaceNeeded = current.Length > 0 ? 1 : 0;
+
+            if (current.Length + spaceNeeded + word.Length > lineWidth)
+            {
+                if (current.Length > 0)
+                {
+                    lines.Add(current.ToString());
+                    current.Clear();
+                }
+            }
+
+            if (current.Length > 0)
+                current.Append(' ');
+
+            current.Append(word);
+        }
+
+        if (current.Length > 0)
+            lines.Add(current.ToString());
+
+        return string.Join(Environment.NewLine, lines);
+    }
 }

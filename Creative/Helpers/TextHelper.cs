@@ -36,4 +36,13 @@ public static class TextHelper
                    .Replace(' ', '-')
                    .Replace("--", "-");
     }
+
+    public static bool IsPalindrome(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return false;
+
+        var cleaned = text.ToLower().Where(char.IsLetterOrDigit).ToArray();
+        return cleaned.SequenceEqual(cleaned.Reverse());
+    }
 }

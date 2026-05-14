@@ -1,0 +1,25 @@
+{
+  "solution": "./Creative.sln",
+  "sourceProjects": [
+    "./Creative/Creative.csproj"
+  ],
+  "testProjects": [
+    "./Creative.Tests/Creative.Tests.csproj"
+  ],
+  "testFramework": "xunit",
+  "mockingLibrary": "moq",
+  "testDataLibrary": "auto",
+  "namingConvention": "MethodName_Scenario_ExpectedResult",
+  "cmsFramework": "none",
+  "patterns": {
+    "include": [
+      "**/*.cs"
+    ],
+    "exclude": [
+      "**/Migrations/**",
+      "**/obj/**",
+      "**/bin/**",
+      "**/wwwroot/**"
+    ]
+  }
+}

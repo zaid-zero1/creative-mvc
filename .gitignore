@@ -89,3 +89,8 @@ appsettings.*.json
 secrets.json
 *.pfx
 *.p12
+.testpilot.detected.json
+.testpilot.scan-source.json
+.testpilot.scan-tests.json
+.testpilot.gap-report.json
+.testpilot.gap-report.md

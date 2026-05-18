@@ -60,9 +60,7 @@ public static class TextAnalyzer
             return new TextStats(0, 0, 0, string.Empty, 0.0);
 
         var words = ExtractWords(text);
-        var sentences = text.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Where(s => !string.IsNullOrWhiteSpace(s))
-                            .ToList();
+        int sentenceCount = text.Count(c => c == '.' || c == '!' || c == '?');
         var paragraphs = text.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.RemoveEmptyEntries)
                              .Where(p => !string.IsNullOrWhiteSpace(p))
                              .ToList();
@@ -77,7 +75,7 @@ public static class TextAnalyzer
 
         return new TextStats(
             WordCount: words.Count,
-            SentenceCount: sentences.Count,
+            SentenceCount: sentenceCount,
             ParagraphCount: paragraphs.Count,
             LongestWord: longestWord,
             AverageWordLength: avgWordLength);

@@ -60,3 +60,6 @@ jobs:
           # Pass the PR number directly so the comment step doesn't need a branch lookup.
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: npx --yes testpilot-dotnet@latest ci-run --commit
+
+      - name: Run test suite
+        run: dotnet test --verbosity normal
